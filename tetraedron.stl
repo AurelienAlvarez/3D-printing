@@ -1,0 +1,30 @@
+solid tetrahedron
+facet normal -0.0 0.0 -1.0
+  outer loop
+    vertex 100.0 0.0 0.0
+    vertex -50.0 0.0 -86.6025403784439
+    vertex -50.0 0.0 86.6025403784439
+  endloop
+endfacet
+facet normal 0.471404520791032 0.816496580927726 0.333333333333333
+  outer loop
+    vertex 100.0 0.0 0.0
+    vertex -50.0 0.0 86.6025403784439
+    vertex 0.0 141.42135623731 0.0
+  endloop
+endfacet
+facet normal -0.942809041582063 0.0 0.333333333333333
+  outer loop
+    vertex -50.0 0.0 86.6025403784439
+    vertex -50.0 0.0 -86.6025403784439
+    vertex 0.0 141.42135623731 0.0
+  endloop
+endfacet
+facet normal 0.471404520791032 -0.816496580927726 0.333333333333333
+  outer loop
+    vertex -50.0 0.0 -86.6025403784439
+    vertex 100.0 0.0 0.0
+    vertex 0.0 141.42135623731 0.0
+  endloop
+endfacet
+endsolid
