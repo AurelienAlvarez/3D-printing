@@ -1,0 +1,43 @@
+//: Icosahedron. Computes a STL file.
+
+import Cocoa
+
+let phi = (1.0 + sqrt(5))/2.0
+
+let vertices = [[-1.0, 0.0, phi], [1.0, 0.0, phi], [0.0, phi, 1.0], [-phi, 1.0, 0.0], [-phi, -1.0, 0.0], [0.0, -phi, 1.0], [phi, -1.0, 0.0], [phi, 1.0, 0.0], [0.0, phi, -1.0], [-1.0, 0.0, -phi], [0.0, -phi, -1.0], [1.0, 0.0, -phi]]
+
+let faces = [[0, 1, 2], [0, 2, 3], [0, 3, 4], [0, 4, 5], [0, 5, 1], [11, 7, 6], [11, 8, 7], [11, 9, 8], [11, 10, 9], [11, 6, 10], [1, 6, 7], [1, 7, 2], [2, 7, 8], [2, 8, 3], [3, 8, 9], [3, 9, 4], [4, 9, 10], [4, 10, 5], [5, 10, 6], [5, 6, 1]]
+
+let scale: Double = 50
+
+/////////////////////
+/////////////////////
+
+print("solid icosahedron")
+
+func compute_normal(face: [Int]) -> [Double] {
+    let v1x = vertices[face[1]][0]-vertices[face[0]][0]
+    let v1y = vertices[face[1]][1]-vertices[face[0]][1]
+    let v1z = vertices[face[1]][2]-vertices[face[0]][2]
+    let v2x = vertices[face[2]][0]-vertices[face[0]][0]
+    let v2y = vertices[face[2]][1]-vertices[face[0]][1]
+    let v2z = vertices[face[2]][2]-vertices[face[0]][2]
+    let nx = v1y * v2z - v1z * v2y
+    let ny = v2x * v1z - v2z * v1x
+    let nz = v1x * v2y - v1y * v2x
+    let norm = sqrt(nx * nx + ny * ny + nz * nz)
+    return [nx/norm, ny/norm, nz/norm]
+}
+
+for face in faces {
+    let normal =  compute_normal(face: face)
+    print("facet normal \(normal[0]) \(normal[1]) \(normal[2])")
+    print("  outer loop")
+    for vertex in face {
+        print("    vertex \(scale * vertices[vertex][0]) \(scale * vertices[vertex][1]) \(scale * vertices[vertex][2])")
+    }
+    print("  endloop")
+    print("endfacet")
+}
+
+print("endsolid")
