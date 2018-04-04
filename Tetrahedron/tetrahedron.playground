@@ -1,0 +1,202 @@
+//: # 3D-printing of the tetrahedron
+
+import Cocoa
+
+//: ## Linear structure
+struct Vect {
+    let x, y, z: Float
+    
+    init(x: Float, y: Float, z: Float) {
+        self.x = x
+        self.y = y
+        self.z = z
+    }
+    
+    static func + (v1: Vect, v2: Vect) -> Vect {
+        return Vect(x: v1.x + v2.x, y: v1.y + v2.y, z: v1.z + v2.z)
+    }
+    static func * (s: Float, v: Vect) -> Vect {
+        return Vect(x: v.x * s, y: v.y * s, z: v.z * s)
+    }
+    static func - (v1: Vect, v2: Vect) -> Vect {
+        return v1 + (-1 * v2)
+    }
+}
+
+//: ### Euclidean structure
+extension Vect {
+    var norm: Float {
+        get {
+            return sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        }
+    }
+    func normalize() -> Vect {
+        return (1.0 / self.norm) * self
+    }
+}
+    
+
+//: ## Affine structure
+struct Vertex {
+    var x, y, z: Float
+    
+    init(x: Float, y: Float, z: Float) {
+        self.x = x
+        self.y = y
+        self.z = z
+    }
+    
+    func translate(v: Vect) -> Vertex {
+        return Vertex(x: x + v.x, y: y + v.y, z: z + v.z)
+    }
+    func homothety(s: Float) -> Vertex {
+        return Vertex(x: x * s, y: y * s, z: z * s)
+    }
+}
+
+//: ### Computes vector AB (from point A to B)
+func affineStruct(A: Vertex, B: Vertex) -> Vect {
+    return Vect(x: B.x - A.x, y: B.y - A.y, z: B.z - A.z)
+}
+
+
+//: ## Polyhedral structure
+struct Edge {
+    let origin, terminal: Vertex
+    
+    init(origin: Vertex, terminal: Vertex) {
+        self.origin = origin
+        self.terminal = terminal
+    }
+    
+    func opp() -> Edge {
+        return Edge(origin: terminal, terminal: origin)
+    }
+    func toVect() -> Vect {
+        return affineStruct(A: origin, B: terminal)
+    }
+}
+
+//: ### Wedge product of two vectors in R^3
+func wedge_product(v1: Vect, v2: Vect) -> Vect {
+    let nx = v1.y * v2.z - v1.z * v2.y
+    let ny = v2.x * v1.z - v2.z * v1.x
+    let nz = v1.x * v2.y - v1.y * v2.x
+    return Vect(x: nx, y: ny, z: nz)
+}
+
+struct Face {
+    let vertex_1, vertex_2, vertex_3: Vertex
+
+    init(vertex_1: Vertex, vertex_2: Vertex, vertex_3: Vertex) {
+        self.vertex_1 = vertex_1
+        self.vertex_2 = vertex_2
+        self.vertex_3 = vertex_3
+    }
+    
+    func normal() -> Vect {
+        let v1 = affineStruct(A: self.vertex_1, B: self.vertex_2)
+        let v2 = affineStruct(A: self.vertex_1, B: self.vertex_3)
+        let normal = wedge_product(v1: v1, v2: v2)
+        return (1.0 / sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z)) * normal
+    }
+    func opp() -> Face {
+        return Face(vertex_1: vertex_1, vertex_2: vertex_3, vertex_3: vertex_2)
+    }
+
+}
+
+protocol Polyhedron {
+    var vertices: [Vertex] { get }
+    var edges: [Edge] { get }
+    var faces: [Face] { get }
+}
+
+
+//: ## Triangulation (STL format)
+func STLwrite(faces: [Face], scale: Float) {
+    for face in faces {
+        let normal =  face.normal()
+        print("facet normal \(Float32(normal.x)) \(Float32(normal.y)) \(Float32(normal.z))")
+        print("  outer loop")
+        let face_vertices: [Vertex] = [face.vertex_1.homothety(s: scale), face.vertex_2.homothety(s: scale), face.vertex_3.homothety(s: scale)]
+        for vertex in face_vertices {
+            print("    vertex \(Float32(vertex.x)) \(Float32(vertex.y)) \(Float32(vertex.z))")
+        }
+        print("  endloop")
+        print("endfacet")
+    }
+}
+
+
+
+//: # Tetrahedron
+struct Tetrahedron: Polyhedron {
+    let P, Q, R, S: Vertex
+    
+    init(P: Vertex, Q: Vertex, R: Vertex, S: Vertex) {
+        self.P = P
+        self.Q = Q
+        self.R = R
+        self.S = S
+    }
+    
+    var PQ: Edge { get { return Edge(origin: P, terminal: Q) } }
+    var PR: Edge { get { return Edge(origin: P, terminal: R) } }
+    var PS: Edge { get { return Edge(origin: P, terminal: S) } }
+    var QR: Edge { get { return Edge(origin: Q, terminal: R) } }
+    var RS: Edge { get { return Edge(origin: R, terminal: S) } }
+    var SQ: Edge { get { return Edge(origin: S, terminal: Q) } }
+
+    var PQR: Face { get { return Face(vertex_1: P, vertex_2: Q, vertex_3: R) } }
+    var PRS: Face { get { return Face(vertex_1: P, vertex_2: R, vertex_3: S) } }
+    var PSQ: Face { get { return Face(vertex_1: P, vertex_2: S, vertex_3: Q) } }
+    var QSR: Face { get { return Face(vertex_1: Q, vertex_2: S, vertex_3: R) } }
+
+    var vertices: [Vertex] { get { return [P, Q, R, S] } }
+    var edges: [Edge] { get { return [PQ, PR, PS, QR, RS, SQ] } }
+    var faces: [Face] { get { return [PQR, PRS, PSQ, QSR] } }
+}
+
+//: ## Tetrahedron definition
+let P = Vertex(x: sqrt(2)/2.0, y: 0.5, z: 0.0)
+let Q = Vertex(x: -sqrt(2)/2.0, y: 0.5, z: 0.0)
+let R = Vertex(x: 0.0, y: -0.5, z: sqrt(2)/2.0)
+let S = Vertex(x: 0.0, y: -0.5, z: -sqrt(2)/2.0)
+
+
+//: ### Without rotation
+/*
+let tetrahedron = Tetrahedron(P: P, Q: Q, R: R, S: S)
+
+print("solid tetrahedron")
+STLwrite(faces: tetrahedron.faces, scale: 100.0)
+print("endsolid tetrahedron")
+*/
+
+
+//: ### Tetrahedron rotation in 3-space
+extension Vect {
+    func rotation_x(cos_theta: Float, sin_theta: Float) -> Vect {
+        return Vect(x: self.x, y: cos_theta * self.y - sin_theta * self.z, z: sin_theta * self.y + cos_theta * self.z)
+    }
+}
+
+func tetrahedron_rotation(tetrahedron: Tetrahedron, cos_theta: Float, sin_theta: Float) -> Tetrahedron {
+    let S_rot_SP = tetrahedron.S.translate(v: tetrahedron.PS.opp().toVect().rotation_x(cos_theta: cos_theta, sin_theta: sin_theta))
+    let S_rot_SQ = tetrahedron.S.translate(v: tetrahedron.SQ.toVect().rotation_x(cos_theta: cos_theta, sin_theta: sin_theta))
+    let S_rot_SR = tetrahedron.S.translate(v: tetrahedron.RS.opp().toVect().rotation_x(cos_theta: cos_theta, sin_theta: sin_theta))
+    return Tetrahedron(P: S_rot_SP, Q: S_rot_SQ, R: S_rot_SR, S: tetrahedron.S)
+}
+
+
+//: ### With rotation
+let cos_theta: Float = sqrt(2.0/3.0)
+let sin_theta: Float = -sqrt(1.0/3.0)
+
+let tetrahedron2 = tetrahedron_rotation(tetrahedron: Tetrahedron(P: P, Q: Q, R: R, S: S), cos_theta: cos_theta, sin_theta: sin_theta)
+
+print("solid tetrahedron")
+STLwrite(faces: tetrahedron2.faces, scale: 100.0)
+print("endsolid tetrahedron")
+
