@@ -158,12 +158,12 @@ struct Tetrahedron: Polyhedron {
     var faces: [Face] { get { return [PQR, PRS, PSQ, QSR] } }
 }
 
+
 //: ## Tetrahedron definition
 let P = Vertex(x: sqrt(2)/2.0, y: 0.5, z: 0.0)
 let Q = Vertex(x: -sqrt(2)/2.0, y: 0.5, z: 0.0)
 let R = Vertex(x: 0.0, y: -0.5, z: sqrt(2)/2.0)
 let S = Vertex(x: 0.0, y: -0.5, z: -sqrt(2)/2.0)
-
 
 //: ### Without rotation
 /*
@@ -173,7 +173,6 @@ print("solid tetrahedron")
 STLwrite(faces: tetrahedron.faces, scale: 100.0)
 print("endsolid tetrahedron")
 */
-
 
 //: ### Tetrahedron rotation in 3-space
 extension Vect {
