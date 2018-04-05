@@ -18,9 +18,6 @@ struct Vect {
     static func * (s: Float, v: Vect) -> Vect {
         return Vect(x: v.x * s, y: v.y * s, z: v.z * s)
     }
-    static func - (v1: Vect, v2: Vect) -> Vect {
-        return v1 + (-1 * v2)
-    }
 }
 
 //: ### Euclidean structure
