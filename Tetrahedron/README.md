@@ -1,6 +1,6 @@
 # Tetrahedron
 
-* A paper which explains the details of this work is is preparation.
+* A paper which explains the details of this work is in preparation.
 * tetrahedron.playground is a Swift playground which generates STL files in order to 3D-print a tetrahedron
   * tetrahedron_before_rotation.stl
   * tetrahedron_after_rotation.stl
